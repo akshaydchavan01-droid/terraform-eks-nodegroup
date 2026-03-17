@@ -1,7 +1,7 @@
 data "aws_subnets" "available-subnets"{
     filter {
         name = "vpc-id"
-        values = ["vpc-07466b47e93b517d1"]
+        values = ["vpc-0bbabf218e4064796"]
     }
 }
 
@@ -36,7 +36,7 @@ resource "aws_eks_node_group" "node-grp" {
   subnet_ids      = data.aws_subnets.available-subnets.ids
   capacity_type   = "ON_DEMAND"
   disk_size       = "20"
-  instance_types  = ["t2.micro"]
+  instance_types  = ["t3.micro"]
   labels = tomap({ env = "dev" })
 
   scaling_config {
