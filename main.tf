@@ -1,7 +1,7 @@
 data "aws_subnets" "available-subnets"{
     filter {
         name = "vpc-id"
-        values = ["vpc-0c50d3f2e9b20a210"]
+        values = ["vpc-0c577bd3e8e045b3b"]
     }
 }
 
@@ -31,7 +31,7 @@ output "kubeconfig-certificate-authority-data" {
 
 resource "aws_eks_node_group" "node-grp" {
   cluster_name    = aws_eks_cluster.ankit-cluster.name
-  node_group_name = "pc-node-group-1281"
+  node_group_name = "pc-node-group-v01"
   node_role_arn   = aws_iam_role.worker.arn
   subnet_ids      = data.aws_subnets.available-subnets.ids
   capacity_type   = "ON_DEMAND"
