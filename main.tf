@@ -54,3 +54,18 @@ resource "aws_eks_node_group" "node-grp" {
     aws_iam_role_policy_attachment.AmazonEC2ContainerRegistryReadOnly
     ]  
 }
+data "aws_iam_policy_document" "assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["eks.amazonaws.com"]
+    }
+
+    actions = [
+      "sts:AssumeRole",
+      "sts:TagSession"   # ✅ ADD THIS
+    ]
+  }
+}
