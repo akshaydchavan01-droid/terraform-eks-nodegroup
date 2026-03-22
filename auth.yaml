@@ -3,9 +3,16 @@ kind: ConfigMap
 metadata:
   name: aws-auth
   namespace: kube-system
+
 data:
-  mapUsers: |
-    - userarn: arn:aws:iam::<account-id>:user/<your-username>
+  mapRoles: |
+    - rolearn: arn:aws:iam::637423619587:role/eks-node-role
+      username: system:node:{{EC2PrivateDNSName}}
+      groups:
+        - system:bootstrappers
+        - system:nodes
+
+    - rolearn: arn:aws:iam::637423619587:role/jenkins-role
       username: admin
       groups:
         - system:masters
