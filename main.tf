@@ -1,7 +1,7 @@
 data "aws_subnets" "available-subnets"{
     filter {
         name = "vpc-id"
-        values = ["vpc-071dddb9288302d26"]
+        values = ["vpc-0fb935e1ec0f697c4"]
     }
 }
 
