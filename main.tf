@@ -9,6 +9,7 @@ resource "aws_eks_cluster" "ankit-cluster" {
   name     = var.cluster_name
   role_arn = aws_iam_role.example.arn
 
+  # हा ब्लॉक (Access Config) जोडा ✅
   access_config {
     authentication_mode                         = "API_AND_CONFIG_MAP"
     bootstrap_cluster_creator_admin_permissions = true
@@ -23,7 +24,6 @@ resource "aws_eks_cluster" "ankit-cluster" {
     aws_iam_role_policy_attachment.example-AmazonEKSVPCResourceController,
   ]
 }
-
 
 output "endpoint" {
   value = aws_eks_cluster.ankit-cluster.endpoint
