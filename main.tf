@@ -9,17 +9,21 @@ resource "aws_eks_cluster" "ankit-cluster" {
   name     = var.cluster_name
   role_arn = aws_iam_role.example.arn
 
+  access_config {
+    authentication_mode                         = "API_AND_CONFIG_MAP"
+    bootstrap_cluster_creator_admin_permissions = true
+  }
+
   vpc_config {
     subnet_ids = data.aws_subnets.available-subnets.ids
   }
 
-  # Ensure that IAM Role permissions are created before and deleted after EKS Cluster handling.
-  # Otherwise, EKS will not be able to properly delete EKS managed EC2 infrastructure such as Security Groups.
   depends_on = [
     aws_iam_role_policy_attachment.example-AmazonEKSClusterPolicy,
     aws_iam_role_policy_attachment.example-AmazonEKSVPCResourceController,
   ]
 }
+
 
 output "endpoint" {
   value = aws_eks_cluster.ankit-cluster.endpoint
@@ -53,22 +57,4 @@ resource "aws_eks_node_group" "node-grp" {
     aws_iam_role_policy_attachment.AmazonEKS_CNI_Policy,
     aws_iam_role_policy_attachment.AmazonEC2ContainerRegistryReadOnly
     ]  
-}
-resource "aws_eks_cluster" "ankit-cluster" {
-  name     = var.cluster_name
-  role_arn = aws_iam_role.example.arn
-
-  access_config {
-    authentication_mode                         = "API_AND_CONFIG_MAP"
-    bootstrap_cluster_creator_admin_permissions = true
-  }
-
-  vpc_config {
-    subnet_ids = data.aws_subnets.available-subnets.ids
-  }
-
-  depends_on = [
-    aws_iam_role_policy_attachment.example-AmazonEKSClusterPolicy,
-    aws_iam_role_policy_attachment.example-AmazonEKSVPCResourceController,
-  ]
 }
