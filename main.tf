@@ -24,7 +24,7 @@ resource "aws_iam_role_policy_attachment" "cluster_policy" {
 # -------------------------------
 # EKS CLUSTER
 # -------------------------------
-resource "aws_eks_cluster" "ankit_cluster" {
+resource "aws_eks_cluster" "ankit_cluster-v02" {
   name     = "ankit-cluster"
   role_arn = aws_iam_role.eks_cluster_role.arn
 
