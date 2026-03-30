@@ -83,7 +83,7 @@ resource "aws_iam_role_policy_attachment" "ecr_policy" {
 # NODE GROUP
 # -------------------------------
 resource "aws_eks_node_group" "node_group" {
-  cluster_name    = aws_eks_cluster.ankit_cluster.name
+  cluster_name    = aws_eks_cluster.ankit_cluster-v02.name
   node_group_name = "pc-node-group-v06"
   node_role_arn   = aws_iam_role.worker_role.arn
 
@@ -117,9 +117,9 @@ resource "aws_eks_node_group" "node_group" {
 # OUTPUTS
 # -------------------------------
 output "cluster_endpoint" {
-  value = aws_eks_cluster.ankit_cluster.endpoint
+  value = aws_eks_cluster.ankit_cluster-v02.endpoint
 }
 
 output "cluster_name" {
-  value = aws_eks_cluster.ankit_cluster.name
+  value = aws_eks_cluster.ankit_cluster-v02.name
 }
