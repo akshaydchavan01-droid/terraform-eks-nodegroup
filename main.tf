@@ -1,47 +1,104 @@
-data "aws_subnets" "available-subnets"{
-    filter {
-        name = "vpc-id"
-        values = ["vpc-025999b144fe6289b"]
-    }
+provider "aws" {
+  region = "ap-south-1"
 }
 
-resource "aws_eks_cluster" "ankit-cluster" {
-  name     = var.cluster_name
-  role_arn = aws_iam_role.example.arn
+# -------------------------------
+# EKS CLUSTER IAM ROLE
+# -------------------------------
+resource "aws_iam_role" "eks_cluster_role" {
+  name = "eks-cluster-role"
 
-  # हा ब्लॉक (Access Config) जोडा ✅
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "eks.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "cluster_policy" {
+  role       = aws_iam_role.eks_cluster_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+}
+
+# -------------------------------
+# EKS CLUSTER
+# -------------------------------
+resource "aws_eks_cluster" "ankit_cluster" {
+  name     = "ankit-cluster"
+  role_arn = aws_iam_role.eks_cluster_role.arn
+
   access_config {
     authentication_mode                         = "API_AND_CONFIG_MAP"
     bootstrap_cluster_creator_admin_permissions = true
   }
 
   vpc_config {
-    subnet_ids = data.aws_subnets.available-subnets.ids
+    subnet_ids = [
+      "subnet-0a478f54566f47171",
+      "subnet-0c89c6986d0ee79f3"
+    ]
   }
 
   depends_on = [
-    aws_iam_role_policy_attachment.example-AmazonEKSClusterPolicy,
-    aws_iam_role_policy_attachment.example-AmazonEKSVPCResourceController,
+    aws_iam_role_policy_attachment.cluster_policy
   ]
 }
 
-output "endpoint" {
-  value = aws_eks_cluster.ankit-cluster.endpoint
+# -------------------------------
+# NODE GROUP IAM ROLE
+# -------------------------------
+resource "aws_iam_role" "worker_role" {
+  name = "eks-node-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "ec2.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
 }
 
-output "kubeconfig-certificate-authority-data" {
-  value = aws_eks_cluster.ankit-cluster.certificate_authority[0].data
+# Attach required policies
+resource "aws_iam_role_policy_attachment" "worker_node_policy" {
+  role       = aws_iam_role.worker_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
 }
 
-resource "aws_eks_node_group" "node-grp" {
-  cluster_name    = aws_eks_cluster.ankit-cluster.name
-  node_group_name = "pc-node-group-v05"
-  node_role_arn   = aws_iam_role.worker.arn
-  subnet_ids      = data.aws_subnets.available-subnets.ids
-  capacity_type   = "ON_DEMAND"
-  disk_size       = "20"
-  instance_types  = ["t3.medium"]
-  labels = tomap({ env = "dev" })
+resource "aws_iam_role_policy_attachment" "cni_policy" {
+  role       = aws_iam_role.worker_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+}
+
+resource "aws_iam_role_policy_attachment" "ecr_policy" {
+  role       = aws_iam_role.worker_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+}
+
+# -------------------------------
+# NODE GROUP
+# -------------------------------
+resource "aws_eks_node_group" "node_group" {
+  cluster_name    = aws_eks_cluster.ankit_cluster.name
+  node_group_name = "pc-node-group-v06"
+  node_role_arn   = aws_iam_role.worker_role.arn
+
+  subnet_ids = [
+    "subnet-0a478f54566f47171",
+    "subnet-0c89c6986d0ee79f3"
+  ]
+
+  instance_types = ["t3.medium"]
+  disk_size      = 20
+  capacity_type  = "ON_DEMAND"
 
   scaling_config {
     desired_size = 2
@@ -52,9 +109,21 @@ resource "aws_eks_node_group" "node-grp" {
   update_config {
     max_unavailable = 1
   }
+
   depends_on = [
-    aws_iam_role_policy_attachment.AmazonEKSWorkerNodePolicy,
-    aws_iam_role_policy_attachment.AmazonEKS_CNI_Policy,
-    aws_iam_role_policy_attachment.AmazonEC2ContainerRegistryReadOnly
-    ]  
+    aws_iam_role_policy_attachment.worker_node_policy,
+    aws_iam_role_policy_attachment.cni_policy,
+    aws_iam_role_policy_attachment.ecr_policy
+  ]
+}
+
+# -------------------------------
+# OUTPUTS
+# -------------------------------
+output "cluster_endpoint" {
+  value = aws_eks_cluster.ankit_cluster.endpoint
+}
+
+output "cluster_name" {
+  value = aws_eks_cluster.ankit_cluster.name
 }
